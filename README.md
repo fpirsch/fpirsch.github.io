@@ -1,4 +1,4 @@
 fpirsch.github.io
 =================
 
-user page
+This user page redirects to the [vptree.js](http://fpirsch.github.io/vptree.js/) project page.
