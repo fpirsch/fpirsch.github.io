@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Input events</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+        <link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+        <style>
+            html { font-family: Raleway; }
+            h1 {
+                display: inline-block;
+                vertical-align: middle;
+                font-size: 3em;
+                margin-right: 2em;
+            }
+            #text-input, #content-editable {
+                font-family: Raleway;   /* text input needs this */
+                display: inline-block;
+                box-sizing: content-box;
+                border: none;
+                background-color: #555555;
+                color: #eeeeee;
+                margin: 1em;
+                padding: 0.5em 1em;
+                width: 12em;
+                line-height: 1.5em;
+                font-size: 200%;
+                max-height: 1.5em;
+                overflow-y: auto;
+                vertical-align: middle;
+            }
+
+            .event {
+                margin: 0 0.5em;
+                background-color: #e0e0e0;
+                display: inline-block;
+                transition: all 0.2s ease 0s;
+            }
+
+            caption {
+                caption-side: bottom;
+                font-size: 11px;
+                font-style: italic;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                width: 12em;
+            }
+
+            .event td { padding: 0; }
+            
+            .event td:first-child {
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .event td:last-child {
+                font-family: "Source Code Pro";
+                font-size: 12px;
+            }
+
+            .deprecated { color: #777777; }
+            .event-keydown { background-color: #f0f0f0; }
+            .event-keypress { background-color: #dcdcdc; }
+            .event-keyup { background-color: #c0c0c0; }
+            .event-cut { background-color: #c0c0ff; }
+            .event-copy { background-color: #d0d0ff; }
+            .event-paste { background-color: #c0c0ff; }
+            .event-input { background-color: #80ff80; }
+            .event-textinput { background-color: #80ff80; }
+            .event.off { opacity: 0.15; transform: scale(0.8); /* margin: 0 -40px; z-index: -10; */ }
+            
+            .button, .toggle { text-decoration: none; color: white; padding: 0.2em 1em; font-weight: normal; }
+            .button { margin-left: 3em; background-color: #333333; }
+            .toggle { margin-left: 1em; background-color: #555555; }
+            .toggle.off { background-color: #aaaaaa; }
+        </style>
+    </head>
+    <body>
+        <h1>Input Events</h1>
+        <input id="text-input" type="text" value="text input field" autocomplete="off">
+        <div id="content-editable" contenteditable="">This div is editable</div>
+
+        <div>
+            <h2 id="header">Received Events <a id="clear" href="" class="button">Clear</a></h2>
+            <div id="timeline" class="timeline"></div>
+        </div>
+
+        <script>
+            var events = ['keydown', 'keypress', 'keyup', 'cut', 'copy', 'paste', 'input', 'textinput'];
+            // Faire un autre set de propriétés pour cut, copy, paste
+            // Mettre les propriétés par famille et les associer aux évènements dans events.
+            var properties = [
+                'type', 'timeStamp', 'char', 'charCode', 'code', 'key', 'keyCode', 'which', 'location', 'altKey', 'ctrlKey', 'metaKey', 'shiftKey', 'repeat', 'isComposing'
+            ];
+            // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
+            var deprecated = {
+                charCode: "This attribute is deprecated; you should use 'key' instead, if available.",
+                keyCode: "This attribute is deprecated; you should use 'key' instead, if available.",
+                which: "This attribute is deprecated; you should use 'key' instead, if available.",
+                char: "This  has been dropped from DOM Level 3 Events. This is supported only on IE."
+            };
+            
+
+            // .classList n'est pas dispo sous IE9 et android 2.3
+            function toggleClass(element, className, condition) {
+                var classes = element.className.split(/\s+/);
+                var pos = classes.indexOf(className);
+                if (pos < 0 && condition) classes.push(className);
+                else if (pos >= 0 && !condition) classes.splice(pos, 1);
+                // else la classe est déjà comme elle doit être
+                element.className = classes.join(' ');
+            }
+
+            // Ajoute les boutons de désactivetion des évènements.
+            var eventsCaptured = {};
+            var timeline = document.getElementById('timeline');
+
+            function toggleEventType(event) {
+                event.preventDefault();
+                var eventName = event.target.textContent;
+                eventsCaptured[eventName] = !eventsCaptured[eventName];
+                var isOff = !eventsCaptured[eventName];
+                
+                // toggle button style
+                this.className = isOff ? 'toggle off' : 'toggle';
+                
+                // toggle reports
+                var eventReports = timeline.getElementsByClassName('event-'+eventName);
+                for (var i = 0; i < eventReports.length; i++) {
+                    toggleClass(eventReports[i], 'off', isOff);
+                }
+            }
+
+            var eventList = document.createDocumentFragment();
+            events.forEach(function(eventName) {
+                var a = document.createElement('a');
+                a.className = 'toggle';
+                a.href = '';
+                a.textContent = eventName;
+                a.onclick = toggleEventType;
+                eventList.appendChild(a);
+                eventsCaptured[eventName] = true;
+            });
+            document.getElementById('header').appendChild(eventList);
+
+            document.getElementById('clear').addEventListener('click', function(event) {
+                event.preventDefault();
+                timeline.innerHTML = '';
+            }, false);
+            
+            // Débute la capture
+            document.getElementById('text-input').focus();
+            listenEvents(document.getElementById('text-input'));
+            listenEvents(document.getElementById('content-editable'));
+    
+            function listenEvents(element) {
+                for(var i = 0; i < events.length; i++) {
+                    element.addEventListener(events[i], handler, false);
+                }
+            }
+                                           
+            function handler(event) {
+                //console.log(element.nodeName, event.type, event.target.nodeName, event);
+                timeline.insertAdjacentHTML('beforeend', eventTemplate(event));
+            }
+            
+            function eventTemplate(event) {
+                var c = eventsCaptured[event.type] ? '' : ' off';
+                var html = '<table class="event event-' + event.type + c +'">';
+                html += '<caption>' + (event.target.value || event.target.textContent) + '</caption>';
+                for(var i = 0; i < properties.length; i++) {
+                    var key = properties[i],
+                        value = event[key];
+                        cssClass = '',
+                        title = '';
+                    if (value === undefined) value = '&nbsp;';
+                    if (deprecated[key]) {
+                        cssClass = ' class="deprecated"';
+                        title = ' title="' + deprecated[key] + '"';
+                    }
+                    html += '<tr' + cssClass + title + '><td>' + key + '</td><td>' + value + '</td></tr>';
+                }
+                html += '</table>';
+                return html;
+            }
+        </script>
+    </body>
+</html>
