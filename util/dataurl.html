@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Image to data URI converter</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+        <style>
+            html { font-family: Raleway; }
+            body.dragging { background-color: #f0f0f0; }
+            h3 { margin-bottom: 0; }
+            input[type=file] { border: 1px solid #c0c0c0; }
+            .output {
+                border: solid 1px #808080;
+                background-color: #e0e0e0;
+                padding: 1em;
+                display: block;
+                box-sizing: border-box;
+                width: 100%;
+                min-height: 25.5em;
+                margin-top: 5px;
+            }
+            #filelist {
+                list-style: none; height:
+                100px;
+            }
+            #filelist li {
+                float: left;
+                width: 110px;
+                height: 110px;
+                /* GIMP-like gray checkerboard */
+                background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAqSURBVDhPY0jDAWbiAKMakAFUHgOQrgFKYwCoPgwwqgEZQOUxAIka0tIA2Vd+kBjea4EAAAAASUVORK5CYII=);
+                margin-right: 10px;
+                text-align: center;
+                outline: 3px solid transparent;
+                transition: outline-color 0.3s ease;
+            }
+            #filelist li::before {
+                content: '';
+                display: inline-block;
+                height: 100%;
+                vertical-align: middle;
+            }
+            #filelist img {
+                vertical-align: middle;
+                /*
+                -moz-pointer-events: none;
+                -ms-pointer-events: none;
+                -webkit-pointer-events: none;*/
+            }
+            #filelist li.selected { outline-color: black; }
+            
+            .cf:before,
+            .cf:after { content: " "; /* 1 */ display: table; /* 2 */ }
+            .cf:after { clear: both; /* http://stackoverflow.com/questions/1260122/expand-div-to-take-remaining-width */ }
+            
+            .info_name { font-size: 20px;  }
+            .cell:first-child { float: left; margin-right: 10px; width: 300px; }
+            .cell:last-child { overflow: hidden; }
+            #fileinfo strong { color: #333333; }
+            table.info_header { margin-left: 1em; }
+            table.info_header td { padding: 0; }
+            table.info_header td:first-child { font-weight: bold; color: #666666; }
+            table.info_header td:last-child { text-align: center; padding-left: 1em; }
+
+            .toggle { text-decoration: none; color: white; padding: 0.2em 1em; font-weight: normal; margin-left: 1em; background-color: #555555; }
+            .toggle.off { background-color: #aaaaaa; }
+
+        </style>
+    </head>
+    <body>
+        <h1>Data URI conversion</h1>
+
+        <p style="display:none">
+        TODO option chaîne JS longueur fixe pour chaque type d'output...<br>
+        </p>
+        
+        <!-- Conseils d'utilisation : http://websemantics.co.uk/online_tools/image_to_data_uri_convertor/ -->
+        Open one or more image files (PNG/JPG/GIF) : <input type="file" id="fileElem" multiple accept="image/*" autocomplete="off" onchange="handleFiles(this.files)">
+        or drag and drop them into this window. About <a href="http://caniuse.com/#feat=datauri">Data URI browser compatibility</a>.
+        <ul id="filelist"></ul>
+        <div id="fileinfo" class="cf"></div>
+
+
+        <script>
+        window.URL = window.URL || window.webkitURL;
+
+        var fileList = document.getElementById('filelist');
+        var fileInfo = document.getElementById('fileinfo');
+        var images = [];
+        var selectedImage;
+        var THUMBNAIL_SIZE = 100;
+
+        function handleFiles(files) {
+            if (!files.length) return;
+            for (var i = 0; i < files.length; i++) {
+                var reader = new FileReader();
+                reader.onload = addImage(files[i]);
+                reader.readAsDataURL(files[i]);
+            }
+        }
+
+
+        function addImage(file) {
+            return function (event) {
+                var src = event.target.result,
+                    header = getImageHeader(src);
+                if (!header) {
+                    alert('Erreur');
+                    return;
+                }
+
+                var maxDimension = Math.max(header.width, header.height),
+                    thumbnailScale = (maxDimension <= THUMBNAIL_SIZE) ? 1 : THUMBNAIL_SIZE / maxDimension;
+
+                var imageData = {
+                    num: images.length,
+                    width: header.width,
+                    height: header.height,
+                    thumbnailWidth: header.width * thumbnailScale,
+                    thumbnailHeight: header.height * thumbnailScale,
+                    src: src,
+                    css: '{\n    width: ' + header.width + 'px;\n    height: ' + header.height + 'px;\n    background: url(' + src + ') no-repeat;\n}',
+                    name: file.name,
+                    size: file.size,
+                    encodedSize: src.length,
+                    delta: src.length - file.size,
+                    hdr: toTable(header, 'info_header')
+                };
+                // Si c'est la première image, on supprime la fausse (voir addEmptyImage)
+                if (images.length === 0) fileList.removeChild(fileList.firstElementChild);
+                images.push(imageData);
+                var imageHtml = templateFill('template-image', imageData);
+                fileList.insertAdjacentHTML('beforeend', imageHtml);
+                fileList.lastElementChild.onclick = selectImage;
+                selectImage(images.length-1);
+            };
+        }
+
+        function addEmptyImage() {
+            var emptyImageData = {
+                num: 'none',
+                width: '',
+                height: '',
+                thumbnailWidth: 50,
+                thumbnailHeight: 50,
+                /* 1px transparent */
+                src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQMAAAAl21bKAAAAA1BMVEUAAACnej3aAAAAAXRSTlMAQObYZgAAAApJREFUCB1jYAAAAAIAAc/INeUAAAAASUVORK5CYII=',
+                css: 'Add an image',
+                name: '',
+                size: 0,
+                encodedSize: 0,
+                delta: 0,
+                hdr: ''
+            };
+            var imageHtml = templateFill('template-image', emptyImageData);
+            fileList.insertAdjacentHTML('beforeend', imageHtml);
+            var imageInfoHtml = templateFill('template-info', emptyImageData);
+            fileInfo.innerHTML = imageInfoHtml;
+            fileInfo.addEventListener('click', toggleOutput, true);
+        }
+
+        function selectImage(n) {
+            if (n.target) {
+                n = n.target;
+                while (n.nodeName !== 'LI') n = n.parentNode;
+                n = +n.getAttribute('data-num');
+            }
+            selectedImage = n;
+            imageData = images[n];
+            [].slice.call(document.querySelectorAll('#filelist li')).forEach(function(li, index) {
+                var toggle = (index === n) ? 'add' : 'remove';
+                li.classList[toggle]('selected');
+            });
+            var imageInfoHtml = templateFill('template-info', imageData);
+            fileInfo.innerHTML = imageInfoHtml;
+            fileInfo.addEventListener('click', toggleOutput, true);
+        }
+
+        function toggleOutput(event) {
+            var a = event.target;
+            if (a.hasAttribute('data-output')) {
+                event.preventDefault();
+                //if (images.length === 0) return;
+                var src = 'Add an image';
+                var imageData = images[selectedImage];
+                // On ne fait rien pour la fake image
+                if (imageData) {
+                    switch (a.getAttribute('data-output')) {
+                        case 'html':
+                            src = '<img width="' + imageData.width + '" height="' + imageData.height + '" title="" alt="" src="' + imageData.src + '">';
+                            break;
+                        case 'css':
+                            src = imageData.css;
+                            break;
+                        case 'raw':
+                            src = imageData.src.replace(/^data.*,/, '');
+                            break;
+                    }
+                }
+                [].slice.call(a.parentElement.getElementsByTagName('a')).forEach(function(button) {
+                    button.classList.add('off');
+                });
+                a.classList.remove('off');
+                var output = a.parentElement.getElementsByTagName('textarea')[0];
+                output.value = src;
+            }
+        }
+
+        function str2hex(s) {
+            var h = new Array(s);
+            for (var i = 0; i < s.length; i++) {
+                var c = s.charCodeAt(i);
+                var x = c.toString(16);
+                if (c < 16) x = '0' + x;
+                h[i] = '0x' + x;
+            }
+            return h.join(' ');
+        }
+
+        function getInt32BigEndian(data, offset) {
+            return data.charCodeAt(offset) << 24 | data.charCodeAt(offset+1) << 16 |
+                data.charCodeAt(offset+2) << 8 | data.charCodeAt(offset+3);
+        }
+
+        function getInt16BigEndian(data, offset) {
+            return data.charCodeAt(offset) << 8 | data.charCodeAt(offset+1);
+        }
+
+        function getInt16LittleEndian(data, offset) {
+            return data.charCodeAt(offset+1) << 8 | data.charCodeAt(offset);
+        }
+
+        function getByte(data, offset) {
+            return data.charCodeAt(offset);
+        }
+
+        var description = {
+            PNG: {
+                color: {
+                    0: 'grayscale',
+                    2: 'RGB',
+                    3: 'Indexed palette',
+                    4: 'grayscale alpha',
+                    6: 'RGBA'
+                },
+                compression: ['deflate/inflate'],
+                filter: ['adaptive filtering'],
+                interlace: ['No', 'Adam7']
+            }
+        };
+
+        function getImageHeader(data) {
+            var pos = data.indexOf('base64,');
+            if (pos < 0) return;
+            // 100 first chars = 75 first bytes.
+            //var data = atob(data.substr(pos + 7, 100));
+            data = atob(data.substr(pos+7));
+            //console.log('data: '+str2hex(data.substr(0, 100)));
+                                          
+            // http://www.libpng.org/pub/png/spec/1.2/PNG-Structure.html
+            if (data.substr(0, 8) === '\x89PNG\x0d\x0a\x1a\x0a') {
+                // IHDR chunk must be first.
+                if (data.substr(12,4) !== 'IHDR') return;
+                return {
+                    type: 'PNG',
+                    width: getInt32BigEndian(data, 16),     // pixels
+                    height: getInt32BigEndian(data, 20),    // pixels
+                    bitDepth: getByte(data, 24),            // bits per sample or per palette index (1, 2, 4, 8 or 16)
+                    color: description.PNG.color[getByte(data, 25)],
+                    compression: description.PNG.compression[getByte(data, 26)],
+                    filter: description.PNG.filter[getByte(data, 27)],
+                    interlace: description.PNG.interlace[getByte(data, 28)]
+                };
+            }
+            // JPG http://www.opennet.ru/docs/formats/jpeg.txt
+            else if(data.substr(0, 2) === '\xff\xd8') {
+                var off = 2;
+                while(off < data.length) {
+                    var segCode = getByte(data, off+1);
+                    // StartOfFrame segments.
+                    if (segCode === 0xc0 || segCode === 0xc2) {
+                        return {
+                            type: 'JPG',
+                            format: (segCode === 0xc0) ? 'baseline' : 'progressive',
+                            bitDepth: getByte(data, off+4),
+                            height: getInt16BigEndian(data, off+5),
+                            width: getInt16BigEndian(data, off+7),
+                            components: getByte(data, off+9)
+                        }
+                    }
+                    else if (segCode === 0xda) break;    // Start Of Scan segment, après le format change (?)
+                    var segLen = 0;
+                    if (segCode < 0xd0 || segCode > 0xd9) segLen = getInt16BigEndian(data, off+2);
+                    off += segLen + 2;
+                }
+            }
+            // http://www.onicos.com/staff/iz/formats/gif.html
+            else if(/GIF8(7|9)a/.test(data.substr(0, 6))) {
+                // La color resolution est à 0... bof...
+                return {
+                    type: 'GIF',
+                    version: data.substr(3, 3),
+                    width: getInt16LittleEndian(data, 6),
+                    height: getInt16LittleEndian(data, 8)
+                }
+            }
+        }
+
+        function toTable(obj, className) {
+            var html = '<table class="'+className+'">';
+            html += Object.keys(obj).sort().map(function(key, index, ar) {
+                return '<tr><td>' + key + '</td><td>' + obj[key] + '</td></tr>';
+            }).join('');
+            html += '</table>';
+            return html;
+        }
+
+        // Drag and Drop
+        var dropbox;
+        dropbox = window;//document.getElementById("dropbox");
+        dropbox.addEventListener("dragenter", dragenter, false);
+        dropbox.addEventListener("dragleave", dragleave, false);
+        dropbox.addEventListener("dragover", dragover, false);
+        dropbox.addEventListener("drop", drop, false);
+
+        function dragenter(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            document.body.classList.add('dragging');
+        }
+
+        function dragleave(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            if (e.target === document.documentElement) document.body.classList.remove('dragging');
+        }
+
+        function dragover(e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+
+        function drop(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            document.body.classList.remove('dragging');
+
+            var dt = e.dataTransfer;
+            var files = dt.files;
+
+            handleFiles(files);
+        }
+
+        // Full templating engine ;-)
+        function templateFill(templateId, param) {
+            var tmpl = document.getElementById(templateId).textContent;
+            tmpl = tmpl.replace(/{{\s*(.*?)\s*}}/g, function(match, key, offset, string) {
+                var replacement = param[key];
+                return replacement !== undefined ? replacement : match;
+            });
+            return tmpl;
+        }
+            
+        </script>
+
+        <script id="template-image" type="text/x-tmpl">
+            <li data-num="{{ num }}"><img width="{{ thumbnailWidth }}" height="{{ thumbnailHeight }}" src="{{ src }}"></li>
+        </script>
+        <script id="template-info" type="text/x-tmpl">
+            <div class="cell">
+                <span class="info_name">{{ name }}</span><br><br>
+                <span class="info_size"><strong>original size:</strong> {{ size }} bytes</span><br>
+                <span class="info_size2"><strong>encoded:</strong> {{ encodedSize }} bytes (+{{delta }} bytes)</span><br>
+                <strong>Header info:</strong><br>{{ hdr }}
+            </div>
+            <div class="cell">
+                <a class="toggle" data-output="css" href="">CSS background</a>
+                <a class="toggle off" data-output="html" href="">HTML image</a>
+                <a class="toggle off" data-output="raw" href="">Raw base64</a>
+                <textarea class="output">{{ css }}</textarea>
+            </div>
+        </script>
+
+        <script>
+            // Init
+            addEmptyImage();
+        </script>
+        
+    </body>
+</html>
