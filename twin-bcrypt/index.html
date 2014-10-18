@@ -14,24 +14,20 @@
         <div class="container">
             <div class="page-header">
                 <h1>Twin-Bcrypt browser demo</h1>
+                <div id="version"></div>
             </div>
 
             <div class="row">
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <h3>Asynchronous, non-blocking</h3>
                     The Bcrypt algorithm is computationnally intensive by design, but this implementation
                     doesn't freeze your browser or node module.
                     <strong>Abort it</strong> if it takes too much time. It works <strong>synchronously, too</strong>.
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <h3>Cryptographically strong random values</h3>
                     Uses the <a href="http://nodejs.org/api/crypto.html">Crypto module</a> on Node.js and
                     the <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window.crypto">Web Cryptography API</a> in browsers.
-                </div>
-                <div class="col-md-4">
-                    <h3>Super fast</h3>
-                    Uses <a href="https://en.wikipedia.org/wiki/Asm.js">asm.js</a> to let JS engines
-					optimize compilation and bring significant performance improvements.
                 </div>
             </div>
 
@@ -97,7 +93,7 @@
 
         <a href="https://github.com/fpirsch/twin-bcrypt"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/e7bbb0521b397edbd5fe43e7f760759336b5e05f/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f677265656e5f3030373230302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png"></a>
 
-        <script src="twin-bcrypt.min.js"></script>
+        <script src="../twin-bcrypt.min.js"></script>
         <script src="demo.js"></script>
     </body>
 </html>
