@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+        <style>
+            #legende {
+                position: absolute;
+                width: 6em;
+                height: 2em;
+                line-height: 2em;
+                background: rgba(0, 0, 0, 0.4);
+                color: #ffffff;
+                text-align: center;
+                font-size: 18px;
+            }
+            #legende a { color: #ffffff; text-decoration: none; }
+        </style>
+    </head>
+    <body>
+        <div id="legende"><a href="http://js1k.com">JS1K</a> #2</div>
+    <!-- Le canvas est préparé pour tous les candidats -->
+    <canvas id="c"></canvas>
+
+    <script>
+      // On leur prépare aussi les contextes audio, d'animation,
+      // et le redimensionnement du canvas avec la fenêtre du navigateur.
+      var a = document.getElementsByTagName('canvas')[0];
+      var b = document.body;
+      var d = function(e){ return function(){ e.parentNode.removeChild(e); }; }(a);
+      // unprefix some popular vendor prefixed things (but stick to their original name)
+      var AudioContext =
+        window.AudioContext ||
+          window.webkitAudioContext;
+      var requestAnimationFrame =
+        window.requestAnimationFrame ||
+          window.mozRequestAnimationFrame ||
+          window.webkitRequestAnimationFrame ||
+          window.msRequestAnimationFrame ||
+          function(f){ setTimeout(f, 1000/30); };
+      // fix bug in safari: http://qfox.nl/weblog/218
+      document.body.clientWidth;
+      // auto resize (original) canvas. call `onresize(w,h) to limit the size of the canvas
+      (window.onorientationchange = window.onresize = function(a){
+        var mw = Infinity;
+        var mh = Infinity;
+        var min = Math.min;
+
+        return function(w,h){
+          if (arguments.length === 2) {
+            mw = w;
+            mh = h;
+          }
+          a.style.width = (a.width = min(mw, innerWidth)) + 'px';
+          a.style.height = (a.height = min(mh, innerHeight)) + 'px';
+        };
+      }(a))();
+
+      var c = a.getContext('2d');
+    </script>
+
+<!-- La démo Highway at night est là -->
+<script>
+for(_='c.q&&(pi%`qfillStyle=_p_`2?^00Z2ZY/AXX,WYWV60UV2UW1T30RR0QQX+yXP"#OOFFNM%5LE[mKU0JJ,H>`G1GE3/9[i),X+CWPRq);_OZ0";0WUWRX)qshadowMath.cos(i40050l(",_NAfor(Blur=	qrotate(-qfc(-9ZW1W9ZX280999i in c)c[0]+[6]]]=c];E=[B=F=I=A=i=0];J>i;i++)Rpm=A,A=10-J*(`4-2)E]=m+(A-m)*(0.5-%R)/2 setIntervafunction(){m=I/5|0;0,0,a.width=a.height=HJqta(Q,Q+*I/)5<i?I/%6:)_"hs"+m%+%,9%)";H-H1Y,J_Color=NF";i=J;i--;)-i*`0,-`H1,I*`0.9qfx("(,-i=+m;i>m;i--){A=i-I/5;y=Q*+i/)+8C=K]+I%5*(K+1]-K])/5-E];3p)HP+9,1Y,) )/-9	9>A?R:0,`2pqba(qm(-R)2pq-fil)	0J,1VUX8p00WRW0XG?1ZJWVX):J0WW20X)G^0:O222 J9ZW4WQX)0==(i+~~B)%Rp1TUX_"red1,3,GQ&&5G9?1:01>(i+F)%p_OZ0 TX*1U2,,<`Y^"red":OZF`3-(`2*+2U)22)if(0<i&&4)M=`9*8;M--;)_L?NA":O9(`12?-2:2)X-L*YU*(M-L)WVYX_O9"}B-=0.3;F+=0.5;I++;I%=3},20)';g=/[^ -FIMS[\]a-or-~]/.exec(_);)with(_.split(g))_=join(shift());eval(_)
+</script>
+
+    </body>
+</html>
