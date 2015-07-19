@@ -229,7 +229,9 @@ videoElement.addEventListener('loadedmetadata', resetPlayer);
 videoElement.addEventListener('timeupdate', displayTime);
 // load initial video after setting the listeners
 // http://www.hd-trailers.net/movie/jurassic-world/ doesn't work (plays well, but setting currentTime or playbackRate has no effect if paused)
-videoElement.src = currentFileName = 'broadcast1.mp4';
+// http://camendesign.com/code/video_for_everybody/test.html
+videoElement.src = 'http://clips.vorwaerts-gmbh.de/VfE.webm';
+currentFileName = 'VfE.webm';
 
 playbackRateInput.max = playbackSpeeds.length - 1;
 playbackRateInput.addEventListener('input', updateSpeed);
