@@ -1,0 +1,131 @@
+body {
+/*    font-family: 'Poiret One', cursive;*/
+    font-family: 'Lora', serif;
+}
+body.dragging { background-color: #f0f0f0; }
+input[type=file] { border: 1px solid #c0c0c0; }
+
+/* http://nicolasgallagher.com/micro-clearfix-hack/ */
+.cf:before,
+.cf:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+.cf:after {
+    clear: both;
+}
+
+#todo { position: absolute; left: 1em; top: 2em; width: 300px; }
+
+h1 { text-align: center; margin: 0; }
+
+#display {
+    min-height: 200px;
+    border: 1px solid #888;
+}
+
+.center {
+    text-align: center;
+    margin: 0.5em auto 0;
+}
+
+.main-video {
+    border: 1px solid black;
+    outline: none;
+}
+
+body.animate .main-video { transition: width 0.5s, height 0.5s; }
+
+.float-aside {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 1em;
+    width: 0;   /* lets the video centered */
+    white-space: nowrap;
+    text-align: left;
+}
+
+.metadata, .metadata > table { width: 300px; }
+
+
+.column-500 { width: 500px; margin: 0.5em auto 0; position: relative; }
+.column-890 { width: 890px; margin: 0.5em auto 0; position: relative; }     /* 890x500 en 16:9 */
+.row { display: inline-block; }
+
+/* Time Display */
+.time-display { display: inline-block; width:200px; margin: 0 2em; }
+.time-display .s {
+    display: inline-block;
+    width: 100px;
+    text-align: right;
+}
+.time-display .ms {
+    display: inline-block;
+    width: 100px;
+    color: #555;
+    font-size: 70%;
+    margin-top: 0.45em;
+}
+
+#playback-rate-input {
+    vertical-align: middle;
+    width: 280px;
+}
+
+#playback-rate-output { width: 3em; }
+
+.big { font-size: 30px; }
+.buttonlist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+.buttonlist > li {
+    display: inline-block;
+    background-color: #ccc;
+    height: 1.5em;
+    line-height: 1.7em;     /* pourrait mal marcher avec une autre taille de caractères :-(   */
+    margin: 0 0.25em;
+    text-align: center;
+    width: 1.5em;
+    cursor: pointer;
+    position: relative;
+}
+.buttonlist > li:hover { background-color: #aaa; }
+.buttonlist > li:active { background-color: #ccd; }
+.buttonlist >li > sub {
+    position: absolute;
+    font-size: 30%;
+    bottom: 0;
+    right: 0.5em;
+    line-height: normal;
+}
+
+.buttonlist.right {
+    position: absolute;
+    right: 0.5em;
+    top: 0;
+}
+
+#screenshots {
+    margin-top: 10px;
+    border: 1px solid #555;
+    position: relative;
+    padding: 4px;       /* same as canvas margin. At least 4px to be below the <h3> */
+    line-height: 0;     /* removes the thin blank space under each canvas */
+}
+#screenshots > h3 {
+    position: absolute;     /* absolute adjusts the width to the content */
+    background-color: #fff;
+    line-height: 1em;       /* reduces the white bg at the bottom */
+    margin: 0;
+    padding: 0 0.5em;
+    top: -0.6em;
+    left: 0.5em;
+}
+#screenshots > canvas { margin: 4px; }

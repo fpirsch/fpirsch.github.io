@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Slow-motion</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width">
+<!--        <link href='http://fonts.googleapis.com/css?family=Poiret+One' rel='stylesheet' type='text/css'>-->
+        <link href='http://fonts.googleapis.com/css?family=Lora' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="slomo.css">
+        <link rel="stylesheet" href="icomoon.css">
+    </head>
+    <body class="h500">
+        <!--
+http://stackoverflow.com/questions/4298084/html5-frame-by-frame-viewing-frame-seeking?lq=1
+        -->
+        <h1>Slow-motion video player</h1>
+<div id="todo" style="display:none">
+    TODO
+    <ul>
+        <li>controls custom à la place des natifs.</li>
+        <li>thumbnails sur la progressbar custom ? pas forcément possible, à moins de lire la vidéo dans un 2e player caché lié au canvas</li>
+        <li>bookmarks (needs progressbar custom po savoir où afficher les indicateurs de position de bookmarks)</li>
+    </ul>
+</div>
+        <div class="center">
+            Open video file: <input id="file-input" accept="video/*" autocomplete="off" onchange="handleFiles(this.files)" type="file">
+            or drag and drop one into this window.
+        </div>
+        
+        <div class="center">
+            <video class="main-video" controls>
+                <p>Your browser does not support HTML5 video.</p>
+            </video><aside class="float-aside"></aside>
+        </div>
+
+        <div class="column-890">
+            <div class="big row time-display"><div id="current-s" class="s">0:00</div><div id="current-ms" class="ms">.000</div></div>
+            <div class="row">
+                <!-- pas encore de <datalist> sous FF -->
+                Playback speed <input id="playback-rate-input" type="range" min="0" max="5">
+                ×<output id="playback-rate-output">1</output><br>
+            </div>
+        </div>
+        <div class="column-890">
+            <ul id="time-controls" class="big buttonlist"><li
+                title="start" data-action="start"><i class="icon-first"></i></li><li
+                title="back 1/30s" data-action="previous30"><i class="icon-previous2"></i><sub>1/30</sub></li><li
+                title="back 1s" data-action="previous1"><i class="icon-previous2"></i><sub>1s</sub></li><li
+                title="forward 1s" data-action="next1"><i class="icon-next2"></i><sub>1s</sub></li><li
+                title="forward 1/30s" data-action="next30"><i class="icon-next2"></i><sub>1/30</sub></li><li
+                title="end" data-action="end"><i class="icon-last"></i></li><li style="display:none"
+                title="set a bookmark at this time of the video" data-action="bookmark"><i class="icon-bookmark"></i></li>
+            </ul>
+            <ul id="screen-controls" class="big right buttonlist"><li
+                title="take a screenshot" data-action="screenshot"><i class="icon-camera"></i></li><li
+                title="natural size" data-action="resize"><i class="icon-enlarge2"></i></li>
+            </ul>
+        </div>
+        <div id="screenshots" style="display: none"><h3>Screenshots</h3></div>
+        
+        <script type="text/x-template" id="metadata-template">
+        <div class="metadata">
+        <strong>{{ filename }}</strong><br>
+        <table>
+        <tr><td>duration</td><td>{{{ duration }}}</td></tr>
+        <tr><td>size</td><td>{{{ videoWidth }}}×{{{ videoHeight }}} pixels</td></tr>
+        <tr><td>aspect-ratio</td><td>{{{ ar }}}</td></tr>
+        </table>
+        </div>
+        </script>
+        
+        <script src="slomo.js"></script>
+    </body>
+</html>
