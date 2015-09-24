@@ -1,0 +1,218 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Touch events</title>
+        <meta name="description" content="Live touch events demonstration.">
+        <meta name="viewport" content="width=device-width">
+        <link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+        <style>
+            html { font-family: Raleway; }
+            h1 { font-size: 2em; margin: 0; }
+            h2 { margin-bottom: 0; }
+            #touch-zone {
+                background-color: #555555;
+                color: #eeeeee;
+                padding: 0.5em 1em;
+                line-height: 4em;
+                font-size: 200%;
+                vertical-align: middle;
+                cursor: default;
+            }
+
+            .event {
+                margin: 0 0.5em;
+                background-color: #e0e0e0;
+                display: inline-block;
+                transition: all 0.2s ease 0s;
+            }
+
+            caption {
+                caption-side: bottom;
+                font-size: 11px;
+                font-style: italic;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                width: 12em;
+            }
+
+            .event td { padding: 0; }
+            
+            .event td:first-child {
+                font-size: 12px;
+                font-weight: bold;
+            }
+
+            .event td:last-child {
+                font-family: "Source Code Pro";
+                font-size: 12px;
+            }
+
+            .deprecated { color: #777777; }
+            .non-standard { color: #c47500; }
+            .prefixed { color: purple; }
+            
+            .event-touchstart { background-color: #f0f0f0; }
+            .event-touchmove { background-color: #dcdcdc; }
+            .event-touchend { background-color: #c0c0c0; }
+            .event-enter { background-color: #c0c0ff; }
+            .event-leave { background-color: #d0d0ff; }
+            .event-cancel { background-color: #80ff80; }
+            
+            .event-textinput { background-color: #80ff80; }
+            .event.off { display: none; }
+            
+            .button, .toggle {
+                text-decoration: none;
+                color: white;
+                padding: 0.2em 1em;
+                float: left;
+                width: 6em;
+                margin: 0 0 0.5em 0.5em;
+                font-size: 1.2em;
+            }
+            .button { background-color: #333333; }
+            .toggle { background-color: #555555; }
+            .toggle.off { background-color: #aaaaaa; }
+            
+            .touch-data {
+                display: inline-block;
+                border: 1px solid #555;
+                color: #555;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Touch Events</h1>
+        <div id="touch-zone">Touch this div</div>
+
+        <h2>Received Events</h2>
+        <div class="buttons" id="buttons"><a id="clear" href="" class="button">Clear</a></div>
+        <div id="timeline" class="timeline"></div>
+
+        <script>
+            var events = ['touchstart', 'touchmove', 'touchend', 'touchcancel', 'touchenter', 'touchleave', 'click'];
+
+            // See https://developer.mozilla.org/en-US/docs/Web/API/TouchEvent
+            var properties = [
+                'type', 'timeStamp', 'altKey', 'ctrlKey', 'metaKey', 'shiftKey', 'changedTouches', 'targetTouches', 'touches'
+            ];
+
+            // See https://developer.mozilla.org/en-US/docs/Web/API/Touch
+            var touchProperties = ['clientX', 'clientY', 'force', 'identifier', 'pageX', 'pageY', 'radiusX', 'radiusY', 'rotationAngle', 'screenX', 'screenY'];
+
+            var deprecated = {};
+            var nonStandard = {};
+
+            function getListedProperties() {
+                var listed = {};
+                for (var i = 0; i < properties.length; i++) listed[properties[i]] = 1;
+                return listed;
+            }
+            
+            var listed = getListedProperties();
+
+            // .classList n'est pas dispo sous IE9 et android 2.3
+            function toggleClass(element, className, condition) {
+                var classes = element.className.split(/\s+/);
+                var pos = classes.indexOf(className);
+                if (pos < 0 && condition) classes.push(className);
+                else if (pos >= 0 && !condition) classes.splice(pos, 1);
+                // else la classe est déjà comme elle doit être
+                element.className = classes.join(' ');
+            }
+
+            // Ajoute les boutons de désactivation des évènements.
+            var eventsCaptured = {};
+            var timeline = document.getElementById('timeline');
+
+            function toggleEventType(event) {
+                event.preventDefault();
+                var eventName = event.target.textContent;
+                eventsCaptured[eventName] = !eventsCaptured[eventName];
+                var isOff = !eventsCaptured[eventName];
+                
+                // toggle button style
+                this.className = isOff ? 'toggle off' : 'toggle';
+                
+                // toggle reports
+                var eventReports = timeline.getElementsByClassName('event-'+eventName);
+                for (var i = 0; i < eventReports.length; i++) {
+                    toggleClass(eventReports[i], 'off', isOff);
+                }
+            }
+
+            var eventList = document.createDocumentFragment();
+            events.forEach(function(eventName) {
+                var a = document.createElement('a');
+                a.className = 'toggle';
+                a.href = '';
+                a.textContent = eventName;
+                a.onclick = toggleEventType;
+                eventList.appendChild(a);
+                eventsCaptured[eventName] = true;
+            });
+            document.getElementById('buttons').appendChild(eventList);
+
+            document.getElementById('clear').addEventListener('click', function(event) {
+                event.preventDefault();
+                timeline.innerHTML = '';
+            }, false);
+            
+            // Débute la capture
+            listenEvents(document.getElementById('touch-zone'));
+    
+            function listenEvents(element) {
+                for(var i = 0; i < events.length; i++) {
+                    element.addEventListener(events[i], handler, false);
+                }
+            }
+                                           
+            function handler(event) {
+                event.preventDefault();
+                //console.log(element.nodeName, event.type, event.target.nodeName, event);
+                timeline.insertAdjacentHTML('beforeend', eventTemplate(event));
+            }
+            
+            function touchTemplate(touch) {
+                var html = '<table class="touch-data">';
+                for (var i = 0; i < touchProperties.length; i++) {
+                    var name = touchProperties[i];
+                    html += '<tr><td>' + name + '</td><td>' + touch[name] + '</td></tr>';
+                }
+                html += '</table>';
+                return html;
+            }
+            
+            function touchListTemplate(list) {
+                var html = '';
+                for (var i = 0; i < list.length; i++) {
+                    html += touchTemplate(list[i]);
+                }
+                html += '';
+                return html;
+            }
+            
+            function eventTemplate(event) {
+                var c = eventsCaptured[event.type] ? '' : ' off';
+                var html = '<table class="event event-' + event.type + c +'">';
+
+                // Basic property listing
+                for(var i = 0; i < properties.length; i++) {
+                    var key = properties[i];
+                    if (!(key in event)) continue;
+                    var value = event[key];
+                    if (typeof value === 'string') value = '"' + value + '"';
+                    if (value instanceof TouchList) value = touchListTemplate(value);
+                    html += '<tr><td>' + key + '</td><td>' + value + '</td></tr>';
+                }
+                
+                html += '</table>';
+                return html;
+            }
+        </script>
+    </body>
+</html>
