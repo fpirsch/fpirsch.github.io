@@ -65,7 +65,8 @@
 
             .deprecated { color: #777777; }
             .non-standard { color: #c47500; }
-            .event-keydown { background-color: #f0f0f0; }
+            .prefixed { color: purple; }
+/*            .event-keydown { background-color: #f0f0f0; }
             .event-keypress { background-color: #dcdcdc; }
             .event-keyup { background-color: #c0c0c0; }
             .event-cut { background-color: #c0c0ff; }
@@ -73,6 +74,7 @@
             .event-paste { background-color: #c0c0ff; }
             .event-input { background-color: #80ff80; }
             .event-textinput { background-color: #80ff80; }
+            */
             .event.off { opacity: 0.15; transform: scale(0.8); /* margin: 0 -40px; z-index: -10; */ }
             .event-mousemove.off { display: none; }
             
@@ -93,20 +95,30 @@
 
         <script>
             var events = ['mousedown', 'mouseup', 'click', 'dblclick', 'mousemove', 'wheel', 'mousewheel'];
-            // Faire un autre set de propriétés pour cut, copy, paste
             // Mettre les propriétés par famille et les associer aux évènements dans events.
             var properties = [
                 'type', 'timeStamp', 'button', 'buttons', 'altKey', 'ctrlKey', 'metaKey', 'shiftKey', 'clientX', 'clientY',
-                'mozMovementX', 'mozMovementY', 'webkitMovementX', 'webkitMovementY', 'screenX', 'screenY', 'which', 'mozPressure', 'mozInputSource',
-                'deltaX', 'deltaY', 'wheelDelta', 'wheelDeltaX', 'detail'
+                'movementX', 'movementY', 'offsetX', 'offsetY', 'pageX', 'pageY', 'region', 'relatedTarget', 'screenX', 'screenY',
+                'which', 'mozPressure', 'mozInputSource', 'deltaX', 'deltaY', 'wheelDelta', 'wheelDeltaX', 'detail', 'x', 'y'
             ];
+            
             // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent
             var deprecated = {};
             var nonStandard = {
                 mozPressure: true,
-                mozInputSource: true
+                mozInputSource: true,       // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/mozInputSource
+                which: true,                // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/which
+                x: true,                    // https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/x
+                y: true
             };
+
+            function getListedProperties() {
+                var listed = {};
+                for (var i = 0; i < properties.length; i++) listed[properties[i]] = 1;
+                return listed;
+            }
             
+            var listed = getListedProperties();
 
             // .classList n'est pas dispo sous IE9 et android 2.3
             function toggleClass(element, className, condition) {
@@ -118,7 +130,7 @@
                 element.className = classes.join(' ');
             }
 
-            // Ajoute les boutons de désactivetion des évènements.
+            // Ajoute les boutons de désactivation des évènements.
             var eventsCaptured = {};
             var timeline = document.getElementById('timeline');
 
@@ -170,24 +182,53 @@
                 timeline.insertAdjacentHTML('beforeend', eventTemplate(event));
             }
             
+            function attributes(classes, captions) {
+                var attr = '';
+                if (classes.length > 0) attr += ' class="' + classes.join(' ') + '"';
+                if (captions.length > 0) attr += ' title="' + captions.join(' ') + '"';
+                return attr;
+            }
+            
             function eventTemplate(event) {
                 var c = eventsCaptured[event.type] ? '' : ' off';
                 var html = '<table class="event event-' + event.type + c +'">';
-                for(var i = 0; i < properties.length; i++) {
-                    var key = properties[i],
-                        value = event[key];
-                        cssClass = '',
-                        title = '';
-                    if (value === undefined) value = '&nbsp;';
+                
+                function row(key, standard) {
+                    var classes = [],
+                        captions = [];
+                    var value = event[key];
+                    if (typeof value === 'string') value = '"' + value + '"';
+                    if (key !== standard) {
+                        classes.push('prefixed');
+                        captions.push('The name of this feature is prefixed as this browser considers it experimental.');
+                    }
                     if (deprecated[key]) {
-                        cssClass = ' class="deprecated"';
-                        title = ' title="' + deprecated[key] + '"';
+                        classes.push('deprecated');
+                        captions.push(deprecated[key]);
                     }
                     else if (nonStandard[key]) {
-                        cssClass = ' class="non-standard"';
-                        title = ' title="This API has not been standardized."';
+                        classes.push('non-standard');
+                        captions.push('This API has not been standardized.');
                     }
-                    html += '<tr' + cssClass + title + '><td>' + key + '</td><td>' + value + '</td></tr>';
+                    return '<tr' + attributes(classes, captions) + '><td>' + key + '</td><td>' + value + '</td></tr>';
+                }
+
+                // Basic property listing
+                for(var i = 0; i < properties.length; i++) {
+                    var key = properties[i];
+                    if (!(key in event)) continue;
+                    html += row(key, key);
+                }
+                
+                // Add prefixed versions
+                for (var name in event) {
+                    var m = name.match(/^(moz|webkit|ms|o)([A-Z])(.*)/);
+                    if (m) {
+                        var standard = m[2].toLowerCase() + m[3];
+                        if (listed[standard]) {
+                            html += row(name, standard);
+                        }
+                    }
                 }
                 html += '</table>';
                 return html;
