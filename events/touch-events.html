@@ -1,13 +1,13 @@
-<!doctype html>
-<html>
-    <head>
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <title>Touch events</title>
         <meta name="description" content="Live touch events demonstration.">
         <meta name="viewport" content="width=device-width">
-        <link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
-        <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+        <link href="Touch%20events_files/css.css" rel="stylesheet" type="text/css">
+        <link href="Touch%20events_files/css_002.css" rel="stylesheet" type="text/css">
         <style>
             html { font-family: Raleway; }
             h1 { font-size: 2em; margin: 0; }
@@ -64,6 +64,12 @@
             
             .event-textinput { background-color: #80ff80; }
             .event.off { display: none; }
+            
+            .buttons::after {
+                clear: both;
+                content: "";
+                display: block;
+            }
             
             .button, .toggle {
                 text-decoration: none;
@@ -201,12 +207,26 @@
                 var html = '<table class="event event-' + event.type + c +'">';
 
                 // Basic property listing
+                var changedTouches;
                 for(var i = 0; i < properties.length; i++) {
                     var key = properties[i];
                     if (!(key in event)) continue;
                     var value = event[key];
                     if (typeof value === 'string') value = '"' + value + '"';
-                    if (value instanceof TouchList) value = touchListTemplate(value);
+                    else if (window.TouchList && value instanceof TouchList) {
+                        if (value.length === 0) {
+                            value = '[]';
+                        }
+                        else {
+                            value = touchListTemplate(value);
+                            if (key === 'changedTouches') {
+                                changedTouches = value;
+                            }
+                            else if (value === changedTouches) {        // save some space on display
+                                value = '=changedTouches';
+                            }
+                        }
+                    }
                     html += '<tr><td>' + key + '</td><td>' + value + '</td></tr>';
                 }
                 
@@ -214,5 +234,4 @@
                 return html;
             }
         </script>
-    </body>
-</html>
+</body></html>
