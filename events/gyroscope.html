@@ -1,0 +1,96 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<title>Gyroscope events</title>
+<meta name="description" content="Live touch events demonstration.">
+<meta name="viewport" content="width=device-width">
+<link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
+<style>
+    html { font-family: Raleway; }
+    h1 { font-size: 2em; margin: 0; }
+    h2 { margin-bottom: 0; }
+
+    .event {
+        margin: 0 0.5em;
+        background-color: #e0e0e0;
+        font-size: 12px;
+    }
+
+    .event td:first-child {
+        font-weight: bold;
+    }
+
+    .event td:nth-child(2) {
+        font-family: "Source Code Pro";
+        width: 7em;
+        text-align: right;
+        padding-right: 1em;
+    }
+</style>
+
+<h1>Gyroscope</h1>
+
+<h2>deviceorientation event</h2>
+
+<table class="event">
+<tr><td>absolute</td><td id="viewAbsolute"></td><td></td></tr>
+<tr><td>alpha</td><td id="viewAlpha"></td><td>deg (0 → 360)</td></tr>
+<tr><td>beta</td><td id="viewBeta"></td><td>deg (-180 → +180)</td></tr>
+<tr><td>gamma</td><td id="viewGamma"></td><td>deg (-90 → +90)</td></tr>
+</table>
+
+<h2>devicemotion event</h2>
+
+<table class="event">
+<tr><td>acceleration.x</td><td id="viewAccelX"></td><td>m/s<sup>2</sup></td></tr>
+<tr><td>acceleration.y</td><td id="viewAccelY"></td><td>m/s<sup>2</sup></td></tr>
+<tr><td>acceleration.z</td><td id="viewAccelZ"></td><td>m/s<sup>2</sup></td></tr>
+<tr><td>accelerationIncludingGravity.x</td><td id="viewAccelGravX"></td><td>m/s<sup>2</sup></td></tr>
+<tr><td>accelerationIncludingGravity.y</td><td id="viewAccelGravY"></td><td>m/s<sup>2</sup></td></tr>
+<tr><td>accelerationIncludingGravity.z</td><td id="viewAccelGravZ"></td><td>m/s<sup>2</sup></td></tr>
+<tr><td>rotationRate.alpha</td><td id="viewRotationA"></td><td>deg/s</td></tr>
+<tr><td>rotationRate.beta</td><td id="viewRotationB"></td><td>deg/s</td></tr>
+<tr><td>rotationRate.gamma</td><td id="viewRotationC"></td><td>deg/s</td></tr>
+<tr><td>interval</td><td id="viewInterval"></td><td>ms</td></tr>
+</table>
+
+<br>
+<br>
+<br>
+<a href="https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Orientation_and_motion_data_explained">Orientation and motion data explained, on MDN</a>
+
+<script>
+
+function handleOrientation(event) {
+    viewAbsolute.textContent = event.absolute;
+    viewAlpha.textContent = event.alpha.toFixed(5);
+    viewBeta.textContent = event.beta.toFixed(5);
+    viewGamma.textContent = event.gamma.toFixed(5);
+}
+
+function handleMotion(event) {
+    viewAccelX.textContent = event.acceleration.x.toFixed(5);
+    viewAccelY.textContent = event.acceleration.y.toFixed(5);
+    viewAccelZ.textContent = event.acceleration.z.toFixed(5);
+    viewAccelGravX.textContent = event.accelerationIncludingGravity.x.toFixed(5);
+    viewAccelGravY.textContent = event.accelerationIncludingGravity.y.toFixed(5);
+    viewAccelGravZ.textContent = event.accelerationIncludingGravity.z.toFixed(5);
+    viewRotationA.textContent = event.rotationRate.alpha.toFixed(5);
+    viewRotationB.textContent = event.rotationRate.beta.toFixed(5);
+    viewRotationC.textContent = event.rotationRate.gamma.toFixed(5);
+    viewInterval.textContent = event.interval;
+}
+
+function start() {
+    window.addEventListener('deviceorientation', handleOrientation, false);
+    window.addEventListener('devicemotion', handleMotion, false);
+}
+
+function stop() {
+    window.removeEventListener('deviceorientation', handleOrientation, false);
+    window.removeEventListener('devicemotion', handleMotion, false);
+}
+
+start();
+</script>
