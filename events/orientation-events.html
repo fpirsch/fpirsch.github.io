@@ -23,7 +23,7 @@
 
     .event td:nth-child(2) {
         font-family: "Source Code Pro";
-        width: 7em;
+        width: 11em;			/* les timeStamp sont parfois très longs */
         text-align: right;
         padding-right: 1em;
     }
@@ -40,6 +40,7 @@
 <h2>resize event</h2>
 
 <table class="event">
+<tr><td>timeStamp</td><td id="resizeTS"></td><td></td></tr>
 <tr><td>window.innerWidth</td><td id="innerW"></td><td>px</td></tr>
 <tr><td>window.innerHeight</td><td id="innerH"></td><td>px</td></tr>
 </table>
@@ -47,6 +48,7 @@
 <h2>orientationchange event</h2>
 
 <table class="event">
+<tr><td>timeStamp</td><td id="orientationTS"></td><td></td></tr>
 <tr><td>orientation.angle</td><td id="viewOrientationAngle"></td><td>deg</td></tr>
 <tr><td>orientation.type</td><td id="viewOrientationType"></td><td></td></tr>
 <tr><td>lockOrientation</td><td id="viewLock"></td><td></td></tr>
@@ -110,11 +112,15 @@ function toggleLock() {
 function handleResize(event) {
 	innerW.textContent = innerWidth;
 	innerH.textContent = innerHeight;
+	resizeTS.textContent = event.timeStamp || (Date.now() + ' (now)');
 }
 
 function handleScreenOrientation(event) {
 	viewOrientationAngle.textContent = screen.orientation.angle;
 	viewOrientationType.textContent = screen.orientation.type;
+	if (event) {
+		orientationTS.textContent = event.timeStamp || (Date.now() + ' (now)');
+	}
 }
 
 function handleDeviceOrientation(event) {
