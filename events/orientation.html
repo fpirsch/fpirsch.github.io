@@ -1,8 +1,8 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-<title>Gyroscope events</title>
-<meta name="description" content="Live touch events demonstration.">
+<title>Orientation/motion events</title>
+<meta name="description" content="Live orientation/motion events demonstration.">
 <meta name="viewport" content="width=device-width">
 <link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
 <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
@@ -27,9 +27,33 @@
         text-align: right;
         padding-right: 1em;
     }
+
+	button {
+		padding: 1em 2em;
+		margin: 1em;
+	}
+
 </style>
 
-<h1>Gyroscope</h1>
+<h1>Orientation/motion</h1>
+
+<h2>resize event</h2>
+
+<table class="event">
+<tr><td>window.innerWidth</td><td id="innerW"></td><td>px</td></tr>
+<tr><td>window.innerHeight</td><td id="innerH"></td><td>px</td></tr>
+</table>
+
+<h2>orientationchange event</h2>
+
+<table class="event">
+<tr><td>orientation.angle</td><td id="viewOrientationAngle"></td><td>deg</td></tr>
+<tr><td>orientation.type</td><td id="viewOrientationType"></td><td></td></tr>
+<tr><td>lockOrientation</td><td id="viewLock"></td><td></td></tr>
+<tr><td>unlockOrientation</td><td id="viewUnlock"></td><td></td></tr>
+</table>
+
+<button id="lockButton" onclick="toggleLock()">Lock</button>
 
 <h2>deviceorientation event</h2>
 
@@ -61,8 +85,39 @@
 <a href="https://developer.mozilla.org/en-US/docs/Web/Guide/Events/Orientation_and_motion_data_explained">Orientation and motion data explained, on MDN</a>
 
 <script>
+var lockMethod, unlockMethod;
+var locked = false;
 
-function handleOrientation(event) {
+function toggleLock() {
+	if (lockMethod && unlockMethod) {
+		if (locked) {
+			if (screen[unlockMethod]()) {
+				locked = false;
+				lockButton.textContent = 'Lock';
+			}
+			else alert('Unlock not allowed !');
+		}
+		else {
+			if (screen[lockMethod](screen.orientation.type)) {
+				locked = true;
+				lockButton.textContent = 'Unlock';
+			}
+			else alert('Lock not allowed !');
+		}
+	}
+}
+
+function handleResize(event) {
+	innerW.textContent = innerWidth;
+	innerH.textContent = innerHeight;
+}
+
+function handleScreenOrientation(event) {
+	viewOrientationAngle.textContent = screen.orientation.angle;
+	viewOrientationType.textContent = screen.orientation.type;
+}
+
+function handleDeviceOrientation(event) {
     viewAbsolute.textContent = event.absolute;
     viewAlpha.textContent = event.alpha.toFixed(5);
     viewBeta.textContent = event.beta.toFixed(5);
@@ -83,12 +138,25 @@ function handleMotion(event) {
 }
 
 function start() {
-    window.addEventListener('deviceorientation', handleOrientation, false);
+	// screen.orientation.unlock ?
+	var lockMethods = Object.keys(Screen.prototype).filter(property => (/(^|[^n])lockorientation/i).test(property));
+	var unlockMethods = Object.keys(Screen.prototype).filter(property => (/unlockorientation/i).test(property));
+	lockMethod = lockMethods[0];
+	unlockMethod = unlockMethods[0];
+	viewLock.textContent = lockMethods.join(', ');
+	viewUnlock.textContent = unlockMethods.join(', ');
+	handleScreenOrientation();
+
+    window.addEventListener('resize', handleResize, false);
+	window.addEventListener('orientationchange', handleScreenOrientation, false);
+    window.addEventListener('deviceorientation', handleDeviceOrientation, false);
     window.addEventListener('devicemotion', handleMotion, false);
 }
 
 function stop() {
-    window.removeEventListener('deviceorientation', handleOrientation, false);
+    window.removeEventListener('resize', handleResize, false);
+	window.removeEventListener('orientationchange', handleScreenOrientation, false);
+    window.removeEventListener('deviceorientation', handleDeviceOrientation, false);
     window.removeEventListener('devicemotion', handleMotion, false);
 }
 
