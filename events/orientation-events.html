@@ -116,8 +116,8 @@ function handleResize(event) {
 }
 
 function handleScreenOrientation(event) {
-	viewOrientationAngle.textContent = screen.orientation.angle;
-	viewOrientationType.textContent = screen.orientation.type;
+	viewOrientationAngle.textContent = screen.orientation ? screen.orientation.angle : 'no support';	// no support on safari
+	viewOrientationType.textContent = screen.orientation ? screen.orientation.type : 'no support';
 	if (event) {
 		orientationTS.textContent = event.timeStamp || (Date.now() + ' (now)');
 	}
