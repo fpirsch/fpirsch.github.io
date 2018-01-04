@@ -113,6 +113,7 @@ function handleResize(event) {
 	innerW.textContent = innerWidth;
 	innerH.textContent = innerHeight;
 	resizeTS.textContent = event.timeStamp || (Date.now() + ' (now)');
+	console.log(event);
 }
 
 function handleScreenOrientation(event) {
@@ -120,6 +121,7 @@ function handleScreenOrientation(event) {
 	viewOrientationType.textContent = screen.orientation ? screen.orientation.type : 'no support';
 	if (event) {
 		orientationTS.textContent = event.timeStamp || (Date.now() + ' (now)');
+		console.log(event);
 	}
 }
 
