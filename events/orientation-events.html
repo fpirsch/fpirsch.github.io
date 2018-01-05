@@ -179,12 +179,12 @@ function handleMotion(event) {
     viewInterval.textContent = event.interval;
 }
 
+// Safari sends the MediaQueryList object, not an event.
 function handleLiveMediaQuery(event) {
+	mqlTS.textContent = event.timeStamp;
 	mqlMedia.textContent = event.media;
 	mqlMatches.textContent = event.matches;
-	// log only if we have an event, but not on the initial function call with the MediaQueryList object.
-	if (event.type) {		// event instanceof MediaQueryListEvent doesn't work on Safari, of course
-		mqlTS.textContent = event.timeStamp;
+	if (event instanceof Event) {
 		log(event);
 	}
 }
