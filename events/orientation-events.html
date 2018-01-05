@@ -23,6 +23,7 @@
 
     .event td:nth-child(2) {
         font-family: "Source Code Pro";
+		white-space: nowrap;
         width: 11em;			/* les timeStamp sont parfois très longs */
         text-align: right;
         padding-right: 1em;
@@ -53,6 +54,14 @@
 <tr><td>orientation.type</td><td id="viewOrientationType"></td><td></td></tr>
 <tr><td>lockOrientation</td><td id="viewLock"></td><td></td></tr>
 <tr><td>unlockOrientation</td><td id="viewUnlock"></td><td></td></tr>
+</table>
+
+<h2>MediaQueryList event</h2>
+
+<table class="event">
+<tr><td>timeStamp</td><td id="mqlTS"></td><td></td></tr>
+<tr><td>media</td><td id="mqlMedia"></td><td></td></tr>
+<tr><td>matches</td><td id="mqlMatches"></td><td></td></tr>
 </table>
 
 <button id="lockButton" onclick="toggleLock()">Lock</button>
@@ -89,6 +98,7 @@
 <script>
 var lockMethod, unlockMethod;
 var locked = false;
+var mediaQueryList = window.matchMedia("(orientation: portrait)");
 
 function toggleLock() {
 	if (lockMethod && unlockMethod) {
@@ -145,6 +155,16 @@ function handleMotion(event) {
     viewInterval.textContent = event.interval;
 }
 
+function handleLiveMediaQuery(event) {
+	mqlMedia.textContent = event.media;
+	mqlMatches.textContent = event.matches;
+	// log only if we have an event, but not on the initial function call with the MediaQueryList object.
+	if (event instanceof MediaQueryListEvent) {
+		mqlTS.textContent = event.timeStamp;
+		console.log(event);
+	}
+}
+
 function start() {
 	// screen.orientation.unlock ?
 	var lockMethods = Object.keys(Screen.prototype).filter(property => (/(^|[^n])lockorientation/i).test(property));
@@ -154,11 +174,13 @@ function start() {
 	viewLock.textContent = lockMethods.join(', ');
 	viewUnlock.textContent = unlockMethods.join(', ');
 	handleScreenOrientation();
+	handleLiveMediaQuery(mediaQueryList);
 
     window.addEventListener('resize', handleResize, false);
 	window.addEventListener('orientationchange', handleScreenOrientation, false);
     window.addEventListener('deviceorientation', handleDeviceOrientation, false);
     window.addEventListener('devicemotion', handleMotion, false);
+	mediaQueryList.addListener(handleLiveMediaQuery);
 }
 
 function stop() {
@@ -166,6 +188,7 @@ function stop() {
 	window.removeEventListener('orientationchange', handleScreenOrientation, false);
     window.removeEventListener('deviceorientation', handleDeviceOrientation, false);
     window.removeEventListener('devicemotion', handleMotion, false);
+	mediaQueryList.removeListener(handleLiveMediaQuery);
 }
 
 start();
