@@ -34,7 +34,26 @@
 		margin: 1em;
 	}
 
+	#detector {
+		position: absolute;
+		height: 0;
+	}
+
+    @media only screen and (orientation: portrait) {
+		#detector {
+			width: 1px;
+			height: calc(1px + 1vh);
+		}
+	}
+    @media only screen and (orientation: landscape) {
+		#detector {
+			width: 2px;
+			height: calc(2px + 2vh);
+		}
+	}
 </style>
+
+<div id="detector"></div>
 
 <h1>Orientation/motion</h1>
 
@@ -119,11 +138,16 @@ function toggleLock() {
 	}
 }
 
+function log(event) {
+	console.log(event);
+	console.log('    Detector size:', detector.offsetWidth +'x' + detector.offsetHeight);
+}
+
 function handleResize(event) {
 	innerW.textContent = innerWidth;
 	innerH.textContent = innerHeight;
 	resizeTS.textContent = event.timeStamp || (Date.now() + ' (now)');
-	console.log(event);
+	log(event);
 }
 
 function handleScreenOrientation(event) {
@@ -131,7 +155,7 @@ function handleScreenOrientation(event) {
 	viewOrientationType.textContent = screen.orientation ? screen.orientation.type : 'no support';
 	if (event) {
 		orientationTS.textContent = event.timeStamp || (Date.now() + ' (now)');
-		console.log(event);
+		log(event);
 	}
 }
 
@@ -161,7 +185,7 @@ function handleLiveMediaQuery(event) {
 	// log only if we have an event, but not on the initial function call with the MediaQueryList object.
 	if (event instanceof MediaQueryListEvent) {
 		mqlTS.textContent = event.timeStamp;
-		console.log(event);
+		log(event);
 	}
 }
 
