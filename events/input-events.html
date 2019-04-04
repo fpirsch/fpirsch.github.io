@@ -1,11 +1,10 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <title>Input events</title>
         <meta name="description" content="">
-        <meta name="viewport" content="width=device-width">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
         <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro' rel='stylesheet' type='text/css'>
         <style>
@@ -15,6 +14,7 @@
                 vertical-align: middle;
                 font-size: 3em;
                 margin-right: 2em;
+                white-space: pre;
             }
             #text-input, #content-editable {
                 font-family: Raleway;   /* text input needs this */
@@ -26,12 +26,15 @@
                 margin: 1em;
                 padding: 0.5em 1em;
                 width: 12em;
+                max-width: 75vw;
                 line-height: 1.5em;
                 font-size: 200%;
                 max-height: 1.5em;
                 overflow-y: auto;
                 vertical-align: middle;
             }
+
+            #event-list { height: 2em; }
 
             .event {
                 margin: 0 0.5em;
@@ -77,6 +80,19 @@
             .button { margin-left: 3em; background-color: #333333; }
             .toggle { margin-left: 1em; background-color: #555555; }
             .toggle.off { background-color: #aaaaaa; }
+
+            @media (max-width: 540px) {
+                h1 { margin-top: 0; margin-bottom: 0; font-size: 2em; }
+                h2 { margin: 0.5em 0; }
+                #text-input, #content-editable {
+                    margin: 0.2em;
+                    font-size: 0.8em;
+                    width: 10em;
+                }
+                .button { margin-left: 0; }
+                .toggle { margin-left: 0.5em; }
+                .button, .toggle { padding: 0.5em; }
+            }
         </style>
     </head>
     <body>
@@ -84,15 +100,15 @@
         <input id="text-input" type="text" value="text input field" autocomplete="off">
         <div id="content-editable" contenteditable="">This div is editable</div>
 
-        <div>
-            <h2 id="header">Received Events <a id="clear" href="" class="button">Clear</a></h2>
-            <div id="timeline" class="timeline"></div>
-        </div>
+        <h2>Received Events</h2>
+        <div id="event-list"><a id="clear" href="" class="button">Clear</a></div>
+        <div id="timeline" class="timeline"></div>
 
         <script>
-            var events = ['keydown', 'keypress', 'keyup', 'cut', 'copy', 'paste', 'input', 'textinput'];
+            var events = ['keydown', 'keypress', 'keyup', 'cut', 'copy', 'paste', 'input', 'textinput', 'compositionstart', 'compositionend'];
             // Faire un autre set de propriétés pour cut, copy, paste
             // Mettre les propriétés par famille et les associer aux évènements dans events.
+            // Pour les évènements de composition, il y a que data
             var properties = [
                 'type', 'timeStamp', 'char', 'charCode', 'code', 'key', 'keyCode', 'which', 'location', 'altKey', 'ctrlKey', 'metaKey', 'shiftKey', 'repeat', 'isComposing'
             ];
@@ -101,7 +117,8 @@
                 charCode: "This attribute is deprecated; you should use 'key' instead, if available.",
                 keyCode: "This attribute is deprecated; you should use 'key' instead, if available.",
                 which: "This attribute is deprecated; you should use 'key' instead, if available.",
-                char: "This  has been dropped from DOM Level 3 Events. This is supported only on IE."
+                char: "This  has been dropped from DOM Level 3 Events. This is supported only on IE.",
+                locale: "Should no longer be used."
             };
             
 
@@ -145,7 +162,7 @@
                 eventList.appendChild(a);
                 eventsCaptured[eventName] = true;
             });
-            document.getElementById('header').appendChild(eventList);
+            document.getElementById('event-list').appendChild(eventList);
 
             document.getElementById('clear').addEventListener('click', function(event) {
                 event.preventDefault();
@@ -165,15 +182,19 @@
                                            
             function handler(event) {
                 //console.log(element.nodeName, event.type, event.target.nodeName, event);
-                timeline.insertAdjacentHTML('beforeend', eventTemplate(event));
+                timeline.insertAdjacentHTML('beforeend', ' ' + eventTemplate(event));
             }
             
             function eventTemplate(event) {
                 var c = eventsCaptured[event.type] ? '' : ' off';
                 var html = '<table class="event event-' + event.type + c +'">';
                 html += '<caption>' + (event.target.value || event.target.textContent) + '</caption>';
-                for(var i = 0; i < properties.length; i++) {
-                    var key = properties[i],
+                var props = properties;
+                if (event.type.slice(0, 11) === 'composition') { // TODO moche
+                    props = ['type', 'timeStamp', 'data', 'locale'];
+                }
+                for(var i = 0; i < props.length; i++) {
+                    var key = props[i],
                         value = event[key];
                         cssClass = '',
                         title = '';
