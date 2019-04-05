@@ -36,11 +36,13 @@
 
             #event-list { height: 2em; }
 
+            #timeline { min-width: 40em; }
             .event {
                 margin: 0 0.5em;
                 background-color: #e0e0e0;
                 display: inline-block;
                 transition: all 0.2s ease 0s;
+                min-height: 18em;
             }
 
             caption {
@@ -74,6 +76,10 @@
             .event-paste { background-color: #c0c0ff; }
             .event-input { background-color: #80ff80; }
             .event-textinput { background-color: #80ff80; }
+            .event-compositionstart { background-color: #ffd54f; }
+            .event-compositionend { background-color: #ffd54f; }
+            .event-compositionupdate { background-color: #ffd54f; }
+            
             .event.off { opacity: 0.15; transform: scale(0.8); /* margin: 0 -40px; z-index: -10; */ }
             
             .button, .toggle { text-decoration: none; color: white; padding: 0.2em 1em; font-weight: normal; }
@@ -105,13 +111,49 @@
         <div id="timeline" class="timeline"></div>
 
         <script>
-            var events = ['keydown', 'keypress', 'keyup', 'cut', 'copy', 'paste', 'input', 'textinput', 'compositionstart', 'compositionend'];
-            // Faire un autre set de propriétés pour cut, copy, paste
-            // Mettre les propriétés par famille et les associer aux évènements dans events.
-            // Pour les évènements de composition, il y a que data
-            var properties = [
+            var events = [
+                'keydown', 'keypress', 'keyup',
+                'cut', 'copy', 'paste', 'input', 'textinput',
+                'compositionstart', 'compositionend', 'compositionupdate'
+            ];
+
+            var keyboardEventProperties = [
                 'type', 'timeStamp', 'char', 'charCode', 'code', 'key', 'keyCode', 'which', 'location', 'altKey', 'ctrlKey', 'metaKey', 'shiftKey', 'repeat', 'isComposing'
             ];
+            var inputEventProperties = [
+                'type', 'timeStamp', 'data',
+                'dataTransfer.getData()',
+                'dataTransfer.dropEffect',
+                'dataTransfer.effectAllowed',
+                'dataTransfer.files',
+                'dataTransfer.items',
+                'dataTransfer.types',
+                'inputType', 'isComposing'];
+            var clipboardEventProperties = [
+                'type', 'timeStamp',
+                'clipboardData.getData()',
+                'clipboardData.dropEffect',
+                'clipboardData.effectAllowed',
+                'clipboardData.files',
+                'clipboardData.items',
+                'clipboardData.types',
+            ];
+            var compositionEventProperties = ['type', 'timeStamp', 'data', 'locale'];
+            var eventProperties = {
+                keydown: keyboardEventProperties,
+                keypress: keyboardEventProperties,
+                keyup: keyboardEventProperties,
+                cut: clipboardEventProperties,
+                copy: clipboardEventProperties,
+                paste: clipboardEventProperties,
+                input: inputEventProperties,
+                textinput: inputEventProperties,
+                compositionstart: compositionEventProperties,
+                compositionend: compositionEventProperties,
+                compositionupdate: compositionEventProperties
+            };
+
+
             // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent
             var deprecated = {
                 charCode: "This attribute is deprecated; you should use 'key' instead, if available.",
@@ -189,15 +231,21 @@
                 var c = eventsCaptured[event.type] ? '' : ' off';
                 var html = '<table class="event event-' + event.type + c +'">';
                 html += '<caption>' + (event.target.value || event.target.textContent) + '</caption>';
-                var props = properties;
-                if (event.type.slice(0, 11) === 'composition') { // TODO moche
-                    props = ['type', 'timeStamp', 'data', 'locale'];
-                }
-                for(var i = 0; i < props.length; i++) {
-                    var key = props[i],
-                        value = event[key];
-                        cssClass = '',
-                        title = '';
+                var properties = eventProperties[event.type];
+                for(var i = 0; i < properties.length; i++) {
+                    var key = properties[i];
+                    var prefix = key.substr(13);
+                    var value =
+                        (prefix === 'dataTransfer.') ? event.dataTransfer[key] :
+                        (prefix === 'clipboardData') ? event.clipboardData[key] :
+                        event[key];
+                    if (key.slice(-2) === '()') {
+                        value = (prefix === 'dataTransfer.') ?
+                            event.dataTransfer.getData('text') :
+                            event.clipboardData.getData('text');
+                    }
+                    var cssClass = '';
+                    var title = '';
                     if (value === undefined) value = '&nbsp;';
                     if (deprecated[key]) {
                         cssClass = ' class="deprecated"';
