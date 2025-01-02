@@ -94,6 +94,15 @@
 <tr><td>gamma</td><td id="viewGamma"></td><td>deg (-90 → +90)</td></tr>
 </table>
 
+<h2>deviceorientationabsolute event</h2>
+
+<table class="event">
+<tr><td>absolute</td><td id="viewAbsAbsolute"></td><td></td></tr>
+<tr><td>alpha</td><td id="viewAbsAlpha"></td><td>deg (0 → 360)</td></tr>
+<tr><td>beta</td><td id="viewAbsBeta"></td><td>deg (-180 → +180)</td></tr>
+<tr><td>gamma</td><td id="viewAbsGamma"></td><td>deg (-90 → +90)</td></tr>
+</table>
+
 <h2>devicemotion event</h2>
 
 <table class="event">
@@ -166,6 +175,13 @@ function handleDeviceOrientation(event) {
     viewGamma.textContent = event.gamma.toFixed(5);
 }
 
+function handleDeviceOrientationAbsolute(event) {
+    viewAbsAbsolute.textContent = event.absolute;
+    viewAbsAlpha.textContent = event.alpha.toFixed(5);
+    viewAbsBeta.textContent = event.beta.toFixed(5);
+    viewAbsGamma.textContent = event.gamma.toFixed(5);
+}
+
 function handleMotion(event) {
     viewAccelX.textContent = event.acceleration.x.toFixed(5);
     viewAccelY.textContent = event.acceleration.y.toFixed(5);
@@ -200,18 +216,20 @@ function start() {
 	handleScreenOrientation();
 	handleLiveMediaQuery(mediaQueryList, true);
 
-    window.addEventListener('resize', handleResize, false);
+	window.addEventListener('resize', handleResize, false);
 	window.addEventListener('orientationchange', handleScreenOrientation, false);
-    window.addEventListener('deviceorientation', handleDeviceOrientation, false);
-    window.addEventListener('devicemotion', handleMotion, false);
+	window.addEventListener('deviceorientation', handleDeviceOrientation, false);
+	window.addEventListener('deviceorientationabsolute', handleDeviceOrientationAbsolute, false);
+	window.addEventListener('devicemotion', handleMotion, false);
 	mediaQueryList.addListener(handleLiveMediaQuery);
 }
 
 function stop() {
-    window.removeEventListener('resize', handleResize, false);
+	window.removeEventListener('resize', handleResize, false);
 	window.removeEventListener('orientationchange', handleScreenOrientation, false);
-    window.removeEventListener('deviceorientation', handleDeviceOrientation, false);
-    window.removeEventListener('devicemotion', handleMotion, false);
+	window.removeEventListener('deviceorientation', handleDeviceOrientation, false);
+	window.removeEventListener('deviceorientationabsolute', handleDeviceOrientationAbsolute, false);
+	window.removeEventListener('devicemotion', handleMotion, false);
 	mediaQueryList.removeListener(handleLiveMediaQuery);
 }
 
